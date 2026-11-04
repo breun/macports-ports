@@ -1,0 +1,9 @@
+These public headers are copied from Apple's OpenJDK repository:
+
+https://github.com/apple/openjdk/tree/xcodejdk14-release/apple/JavaNativeFoundation/JavaNativeFoundation
+
+Source revision: 356491bda24e6c4781c6b650f4efda05a6bc1296
+
+The headers retain Apple's BSD 3-Clause license notices. The framework
+implementation is supplied by the system on x86_64 and by the OpenJDK 8
+bootstrap JDK on arm64.

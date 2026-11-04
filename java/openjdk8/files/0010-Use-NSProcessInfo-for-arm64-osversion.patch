@@ -1,0 +1,26 @@
+--- jdk/src/macosx/native/sun/awt/OSVersion.m
++++ jdk/src/macosx/native/sun/awt/OSVersion.m
+@@ -29,10 +29,15 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+ #import <JavaRuntimeSupport/JavaRuntimeSupport.h>
++#import <Foundation/Foundation.h>
+ 
+ 
+ // returns 107 for Lion, 106 for SnowLeopard etc.
+ int getOSXMajorVersion() {
++#ifdef __arm64__
++    NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
++    return (int)(version.majorVersion * 100 + version.minorVersion * 10 + version.patchVersion);
++#else
+     char *ver = JRSCopyOSVersion();
+     if (ver == NULL) { 
+         return 0;
+@@ -54,6 +59,7 @@
+     free(ver);
+     
+     return v;
++#endif
+ }
+ 
+ BOOL isSnowLeopardOrLower() {

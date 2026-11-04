@@ -2,17 +2,28 @@ diff --git a/common/autoconf/flags.m4 b/common/autoconf/flags.m4
 index 73b2e76511e..8b321480193 100644
 --- common/autoconf/flags.m4
 +++ common/autoconf/flags.m4
-@@ -705,6 +705,10 @@ AC_DEFUN_ONCE([FLAGS_SETUP_COMPILER_FLAGS_FOR_JDK],
-       # command line.
-       CCXXFLAGS_JDK="$CCXXFLAGS_JDK -DMAC_OS_X_VERSION_MAX_ALLOWED=\$(subst .,,\$(MACOSX_VERSION_MIN)) -mmacosx-version-min=\$(MACOSX_VERSION_MIN)"
-       LDFLAGS_JDK="$LDFLAGS_JDK -mmacosx-version-min=\$(MACOSX_VERSION_MIN)"
-+      if test "$OPENJDK_TARGET_CPU_ARCH" = "xaarch64"
-+        CFLAGS_JDK="${CFLAGS_JDK} -arch arm64"
-+        LDFLAGS_JDK="${LDFLAGS_JDK} -arch arm64"
-+      fi
-     fi
-   fi
+--- jdk/make/lib/CoreLibraries.gmk
++++ jdk/make/lib/CoreLibraries.gmk
+@@ -69,5 +69,11 @@
+ else
  
+   # On macosx the old build does partial (incremental) linking of fdlibm instead of
++  ifeq ($(OPENJDK_TARGET_CPU_ARCH), aarch64)
++    LIBFDLIBM_ARCH := arm64
++  else
++    LIBFDLIBM_ARCH := x86_64
++  endif
++
+   # a plain static library.
+   $(eval $(call SetupNativeCompilation,BUILD_LIBFDLIBM_MAC, \
+@@ -77,6 +83,6 @@
+       LANG := C, \
+       CFLAGS := $(CFLAGS_JDKLIB) \
+           -I$(JDK_TOPDIR)/src/share/native/java/lang/fdlibm/include, \
+-      LDFLAGS := -nostdlib -r -arch x86_64, \
++      LDFLAGS := -nostdlib -r -arch $(LIBFDLIBM_ARCH), \
+       OBJECT_DIR := $(JDK_OUTPUTDIR)/objs/libfdlibm, \
+       DEBUG_SYMBOLS := $(DEBUG_ALL_BINARIES)))
 diff --git a/common/autoconf/generated-configure.sh b/common/autoconf/generated-configure.sh
 index b0b30333936..a2ae79c0402 100644
 --- common/autoconf/generated-configure.sh
@@ -137,7 +148,7 @@ index 9bbabfbcf90..a0ae9201f8a 100644
    }
  
 -  void _Copy_conjoint_jshorts_atomic(jshort* from, jshort* to, size_t count) {
-+  void _Copy_conjoint_jshorts_atomic(const jshort* from, jshort* to, size_t count) {
++  void _Copy_conjoint_jshorts_atomic(jshort* from, jshort* to, size_t count) {
      if (from > to) {
 -      jshort *end = from + count;
 +      const jshort *end = from + count;
@@ -146,7 +157,7 @@ index 9bbabfbcf90..a0ae9201f8a 100644
      }
      else if (from < to) {
 -      jshort *end = from;
-+      const jshort *end = from + count;
++      const jshort *end = from;
        from += count - 1;
        to   += count - 1;
        while (from >= end)
@@ -154,7 +165,7 @@ index 9bbabfbcf90..a0ae9201f8a 100644
      }
    }
 -  void _Copy_conjoint_jints_atomic(jint* from, jint* to, size_t count) {
-+  void _Copy_conjoint_jints_atomic(const jint* from, jint* to, size_t count) {
++  void _Copy_conjoint_jints_atomic(jint* from, jint* to, size_t count) {
      if (from > to) {
 -      jint *end = from + count;
 +      const jint *end = from + count;
@@ -171,7 +182,7 @@ index 9bbabfbcf90..a0ae9201f8a 100644
      }
    }
 -  void _Copy_conjoint_jlongs_atomic(jlong* from, jlong* to, size_t count) {
-+  void _Copy_conjoint_jlongs_atomic(const jlong* from, jlong* to, size_t count) {
++  void _Copy_conjoint_jlongs_atomic(jlong* from, jlong* to, size_t count) {
      if (from > to) {
 -      jlong *end = from + count;
 +      const jlong *end = from + count;
@@ -189,25 +200,25 @@ index 9bbabfbcf90..a0ae9201f8a 100644
    }
  
 -  void _Copy_arrayof_conjoint_bytes(HeapWord* from,
-+  void _Copy_arrayof_conjoint_bytes(const HeapWord* from,
++  void _Copy_arrayof_conjoint_bytes(HeapWord* from,
                                      HeapWord* to,
                                      size_t    count) {
      memmove(to, from, count);
    }
 -  void _Copy_arrayof_conjoint_jshorts(HeapWord* from,
-+  void _Copy_arrayof_conjoint_jshorts(const HeapWord* from,
++  void _Copy_arrayof_conjoint_jshorts(HeapWord* from,
                                        HeapWord* to,
                                        size_t    count) {
      memmove(to, from, count * 2);
    }
 -  void _Copy_arrayof_conjoint_jints(HeapWord* from,
-+  void _Copy_arrayof_conjoint_jints(const HeapWord* from,
++  void _Copy_arrayof_conjoint_jints(HeapWord* from,
                                      HeapWord* to,
                                      size_t    count) {
      memmove(to, from, count * 4);
    }
 -  void _Copy_arrayof_conjoint_jlongs(HeapWord* from,
-+  void _Copy_arrayof_conjoint_jlongs(const HeapWord* from,
++  void _Copy_arrayof_conjoint_jlongs(HeapWord* from,
                                       HeapWord* to,
                                       size_t    count) {
      memmove(to, from, count * 8);
@@ -220,7 +231,7 @@ index 84d29b21131..a71f4b78556 100644
  
  
 -  void _Copy_conjoint_jshorts_atomic(jshort* from, jshort* to, size_t count) {
-+  void _Copy_conjoint_jshorts_atomic(const jshort* from, jshort* to, size_t count) {
++  void _Copy_conjoint_jshorts_atomic(jshort* from, jshort* to, size_t count) {
      if (from > to) {
 -      jshort *end = from + count;
 +      const jshort *end = from + count;
@@ -237,7 +248,7 @@ index 84d29b21131..a71f4b78556 100644
      }
    }
 -  void _Copy_conjoint_jints_atomic(jint* from, jint* to, size_t count) {
-+  void _Copy_conjoint_jints_atomic(const jint* from, jint* to, size_t count) {
++  void _Copy_conjoint_jints_atomic(jint* from, jint* to, size_t count) {
      if (from > to) {
 -      jint *end = from + count;
 +      const jint *end = from + count;
@@ -254,7 +265,7 @@ index 84d29b21131..a71f4b78556 100644
      }
    }
 -  void _Copy_conjoint_jlongs_atomic(jlong* from, jlong* to, size_t count) {
-+  void _Copy_conjoint_jlongs_atomic(const jlong* from, jlong* to, size_t count) {
++  void _Copy_conjoint_jlongs_atomic(jlong* from, jlong* to, size_t count) {
      if (from > to) {
 -      jlong *end = from + count;
 +      const jlong *end = from + count;
@@ -272,25 +283,25 @@ index 84d29b21131..a71f4b78556 100644
    }
  
 -  void _Copy_arrayof_conjoint_bytes(HeapWord* from,
-+  void _Copy_arrayof_conjoint_bytes(const HeapWord* from,
++  void _Copy_arrayof_conjoint_bytes(HeapWord* from,
                                      HeapWord* to,
                                      size_t    count) {
      memmove(to, from, count);
    }
 -  void _Copy_arrayof_conjoint_jshorts(HeapWord* from,
-+  void _Copy_arrayof_conjoint_jshorts(const HeapWord* from,
++  void _Copy_arrayof_conjoint_jshorts(HeapWord* from,
                                        HeapWord* to,
                                        size_t    count) {
      memmove(to, from, count * 2);
    }
 -  void _Copy_arrayof_conjoint_jints(HeapWord* from,
-+  void _Copy_arrayof_conjoint_jshorts(const HeapWord* from,
++  void _Copy_arrayof_conjoint_jints(HeapWord* from,
                                      HeapWord* to,
                                      size_t    count) {
      memmove(to, from, count * 4);
    }
 -  void _Copy_arrayof_conjoint_jlongs(HeapWord* from,
-+  void _Copy_arrayof_conjoint_jshorts(const HeapWord* from,
++  void _Copy_arrayof_conjoint_jlongs(HeapWord* from,
                                       HeapWord* to,
                                       size_t    count) {
      memmove(to, from, count * 8);
